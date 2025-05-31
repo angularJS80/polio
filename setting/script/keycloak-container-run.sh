@@ -2,7 +2,7 @@
 
 docker run -d \
   --name keycloak \
-  -p 8089:8089 \
+  -p 8089:8080 \
   -e KEYCLOAK_ADMIN=keycloakadmin \
   -e KEYCLOAK_ADMIN_PASSWORD=keycloakadmin \
   -e KC_DB=mysql \
