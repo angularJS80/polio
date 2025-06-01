@@ -1,0 +1,9 @@
+### Access Token 요청 - client_credentials 방식
+POST http://localhost:8089/realms/polio/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+    &client_id=polio-toy-client&
+client_secret={{client_secret}}
+
+> {% client.global.set("client_access_token", response.body.access_token) %}
