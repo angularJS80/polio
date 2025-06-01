@@ -1,0 +1,3 @@
+# Clients → [클라이언트 선택] → Service Account Roles
+# 왼쪽에서 realm-management 클라이언트를 선택
+# 오른쪽에서 uma_protection을 찾아 추가
