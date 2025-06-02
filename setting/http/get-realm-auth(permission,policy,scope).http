@@ -10,14 +10,63 @@ Authorization: Bearer {{client_access_token}}
 #uma_protection도 포함되어 있어야 함
 
 ###
+#Scope List(Clinet Base)
 GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/scope
 Authorization: Bearer {{client_access_token}}
 
+
 ###
+#Scope List(Resource Base )
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/permission/resource/9b15407a-3ee7-4c2c-a965-9b90de172dfa/scopes
+Authorization: Bearer {{client_access_token}}
+
+
+###
+#Resource List(Clinet Base)
 GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/resource
 Authorization: Bearer {{client_access_token}}
 
 ###
-GET http://localhost:8089/admin/realms/polio/clients/polio-toy-client/authz/resource-server/permission
+#Permission List(Client Base)
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/permission
+Authorization: Bearer {{client_access_token}}
+
+
+###
+#Permission List(Resource Base)
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/permission/resource
+Authorization: Bearer {{client_access_token}}
+
+###
+#Permission List(Scope Base)
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/permission/scope
+Authorization: Bearer {{client_access_token}}
+
+
+###
+#Permission List(Scope Base)
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/permission/9b15407a-3ee7-4c2c-a965-9b90de172dfa
+Authorization: Bearer {{client_access_token}}
+
+
+
+
+###
+#Policy List(Client Base)
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/policy
+Authorization: Bearer {{client_access_token}}
+
+###
+#Policy (associatedPolicies)
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/policy/9b15407a-3ee7-4c2c-a965-9b90de172dfa/associatedPolicies
+Authorization: Bearer {{client_access_token}}
+
+###
+#Role (Policy Detail Base)
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/policy/d5ac494f-3148-43fb-b237-1072f9c3bb25
+Authorization: Bearer {{client_access_token}}
+
+###
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/roles
 Authorization: Bearer {{client_access_token}}
 

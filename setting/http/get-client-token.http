@@ -4,6 +4,6 @@ Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials
     &client_id=polio-toy-client&
-client_secret={{client_secret}}
+client_secret=I6uiQiYIegQVvvIsAgFUpexpgNjfR86H
 
 > {% client.global.set("client_access_token", response.body.access_token) %}

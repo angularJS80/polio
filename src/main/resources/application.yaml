@@ -26,3 +26,10 @@ spring:
       idle-timeout: 600000       # 10분
       connection-timeout: 30000  # 30초
       max-lifetime: 1800000      # 30분
+keycloak:
+  client-id: polio-toy-client
+  client-secret: I6uiQiYIegQVvvIsAgFUpexpgNjfR86H
+  realm: polio
+  username: polio-admin
+  password: polio-admin
+  server-url: http://localhost:8089
