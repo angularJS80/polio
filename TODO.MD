@@ -23,3 +23,10 @@ mapHttpMethodToScope()에서 문자열 포함 여부로 판단하는 방식은 �
 
 scope 이름이 단순히 "read", "write" 등으로 정규화되다 보니, 실제 Keycloak의 정의와 충돌할 여지가 있습니다.
 → 스코프 명과 HTTP 메서드의 관계를 명확히 정의해 두는 것이 좋습니다.
+
+리팩토링 제안
+mapHttpMethodToScope(), allowedMethodsForScope() 등 스코프 관련 로직은 별도의 ScopeUtils 유틸 클래스로 분리하면 재사용성과 테스트 용이성이 높아집니다.
+
+SecurityFilterChain 설정과 JwtAuthenticationConverter는 각각 별도 @Configuration 클래스로 나눠서 관리하면 좋습니다.
+
+KeycloakPermissionService의 클라이언트 메타 정보는 캐시 적용 시 @Cacheable 등 스프링 캐시 기능 활용을 고려해보세요.
