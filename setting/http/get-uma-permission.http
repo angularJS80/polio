@@ -1,0 +1,8 @@
+### UMA 보호 리소스 목록 조회
+GET http://localhost:8089/realms/polio/authz/.well-known/uma2-configuration
+Authorization: Bearer {{client_access_token}}
+
+###
+
+GET http://localhost:8089/realms/polio/authz/protection/permission
+Authorization: Bearer {{client_access_token}}

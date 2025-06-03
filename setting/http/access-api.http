@@ -1,0 +1,3 @@
+### Access token을 포함한 보호된 API 요청
+GET http://localhost:8080/sample/hello
+Authorization: Bearer {{user_access_token}}

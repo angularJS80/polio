@@ -1,0 +1,6 @@
+### 특정 보호 리소스 상세 조회
+GET http://localhost:8089/realms/polio/authz/protection/resource_set/9187f570-8e6f-4db1-9849-91e499f2139a
+Authorization: Bearer {{client_access_token}}
+###
+GET http://localhost:8089/realms/polio/authz/protection/resource_set/18a98296-acd6-4eeb-b366-935e8892084f
+Authorization: Bearer {{client_access_token}}

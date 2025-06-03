@@ -1,0 +1,11 @@
+### Get RPT Token from Keycloak (Authorization Enabled Client)
+POST http://localhost:8089/realms/polio/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id=polio-toy-client&
+client_secret= {{client_secret}}&
+username=polio-toy-client-user1&
+password=polio-toy-client-user1&
+audience=polio-toy-client&
+scope=openid&
+grant_type=urn:ietf:params:oauth:grant-type:uma-ticket
