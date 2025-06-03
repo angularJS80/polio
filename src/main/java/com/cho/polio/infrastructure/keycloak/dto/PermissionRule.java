@@ -1,5 +1,6 @@
-package com.cho.polio.presentation.security.dto;
+package com.cho.polio.infrastructure.keycloak.dto;
 
+import com.cho.polio.application.keycloak.dto.RoleRule;
 import lombok.Data;
 
 import java.util.ArrayList;

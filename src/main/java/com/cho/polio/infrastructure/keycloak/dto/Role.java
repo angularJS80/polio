@@ -1,10 +1,10 @@
-package com.cho.polio.presentation.security.dto;
+package com.cho.polio.infrastructure.keycloak.dto;
 
 import lombok.Data;
 import java.util.Map;
 
 @Data
-public class Role extends IdentityInfo{
+public class Role extends IdentityInfo {
     private String description;
     private boolean composite;
     private boolean clientRole;

@@ -1,6 +1,9 @@
-package com.cho.polio.presentation.security;
+package com.cho.polio.infrastructure.keycloak.client;
 
-import com.cho.polio.presentation.security.dto.*;
+import com.cho.polio.application.keycloak.dto.ClientAuthMeta;
+import com.cho.polio.infrastructure.keycloak.dto.*;
+import com.cho.polio.infrastructure.keycloak.prop.KeycloakSecurityProperties;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.ParameterizedTypeReference;
@@ -11,7 +14,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class KeycloakAdminClient {
     private Map<String, String> cachedRoleIdNameMap;
     public static ClientAuthMeta CLIENT_AUTH_META;
 
-    private String obtainAdminToken() {
+    public String obtainAdminToken() {
         String tokenUrl = props.getServerUrl() + "/realms/" + props.getRealm() + "/protocol/openid-connect/token";
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -44,7 +46,8 @@ public class KeycloakAdminClient {
         return (String) response.getBody().get("access_token");
     }
 
-    private HttpEntity<?> makeAccessHeader(String token) {
+    private HttpEntity<?> makeAccessHeader() {
+        String token = obtainAdminToken();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         return new HttpEntity<>(headers);
@@ -75,7 +78,6 @@ public class KeycloakAdminClient {
                 }
         ).getBody();
     }
-
 
     private List<Policy> retrieveAllPolicies() {
         String policyListUrl = String.format(
@@ -113,7 +115,7 @@ public class KeycloakAdminClient {
         );
     }
 
-    private List<_IdentityInfo> retrieveResourceIdentityPermission(String permissionId) {
+    public List<_IdentityInfo> retrieveResourceIdentityPermission(String permissionId) {
         String resourceUrl = String.format("%s/admin/realms/%s/clients/%s/authz/resource-server/policy/%s/resources",
                 props.getServerUrl(), props.getRealm(), CLIENT_UUID, permissionId);
 
@@ -139,7 +141,7 @@ public class KeycloakAdminClient {
         ).getBody();
     }
 
-    private List<Policy> retrievePolicyPermissionId(String permissionId) {
+    public List<Policy> retrievePolicyPermissionId(String permissionId) {
         String resourceUrl = String.format("%s/admin/realms/%s/clients/%s/authz/resource-server/policy/%s/associatedPolicies",
                 props.getServerUrl(), props.getRealm(), CLIENT_UUID, permissionId);
 
@@ -152,7 +154,7 @@ public class KeycloakAdminClient {
         ).getBody();
     }
 
-    private Optional<PolicyWithRole> findPolicyWithRoleByPolicyId(String policyId) {
+    public Optional<PolicyWithRole> findPolicyWithRoleByPolicyId(String policyId) {
         String resourceUrl = String.format("%s/admin/realms/%s/clients/%s/authz/resource-server/policy/role/%s",
                 props.getServerUrl(), props.getRealm(), CLIENT_UUID, policyId);
 
@@ -168,8 +170,6 @@ public class KeycloakAdminClient {
 
     private String getClientUuid() {
         String clientsUrl = String.format("%s/admin/realms/%s/clients", props.getServerUrl(), props.getRealm());
-
-
         ResponseEntity<List> response = restTemplate.exchange(clientsUrl, HttpMethod.GET, HTTP_ENTITY, List.class);
         List<Map<String, Object>> clients = response.getBody();
 
@@ -180,45 +180,27 @@ public class KeycloakAdminClient {
                 .orElseThrow(() -> new RuntimeException("Client not found"));
     }
 
-    private PermissionRule associateResource(PermissionRule permissionRule) {
-        retrieveResourceIdentityPermission(permissionRule.getPermissionId())
-                .stream()
-                .map(_IdentityInfo::get_id)
-                .map(CLIENT_AUTH_META::findResource)
-                .flatMap(Optional::stream)
-                .findFirst()
-                .ifPresent(permissionRule::setResource);
-
-        return permissionRule;
-    }
-
-    private PermissionRule associateRole(PermissionRule permissionRule) {
-        retrievePolicyPermissionId(permissionRule.getPermissionId()).forEach(policy -> {
-            permissionRule.setPolicy(policy);
-
-            findPolicyWithRoleByPolicyId(policy.getId())
-                    .flatMap(PolicyWithRole::findRoles)
-                    .stream()
-                    .flatMap(Collection::stream)
-                    .map(roleConfig -> CLIENT_AUTH_META.findRole(roleConfig.getId())
-                            .map(role -> RoleRule.of(roleConfig, role.getName())))
-                    .flatMap(Optional::stream)
-                    .forEach(permissionRule::addRoleRule);
-        });
-
-        return permissionRule;
-    }
-
-    public List<PermissionRule> getPermissionRules() {
-
-        HTTP_ENTITY = makeAccessHeader(obtainAdminToken());
+    @PostConstruct
+    public void initialize() {
+        HTTP_ENTITY = makeAccessHeader();
         makeClientAuthMeta();
-
-        return CLIENT_AUTH_META.getPermissions()
-                .stream()
-                .map(PermissionRule::of)
-                .map(this::associateResource)
-                .map(this::associateRole)
-                .collect(Collectors.toList());
     }
+
+    public void refreshClientAuthMeta() {
+        HTTP_ENTITY = makeAccessHeader();
+        makeClientAuthMeta();
+    }
+
+    public List<Permission> getPermissions() {
+        return CLIENT_AUTH_META.getPermissions();
+    }
+
+    public Optional<Resource> findResourceById(String id) {
+        return CLIENT_AUTH_META.findResource(id);
+    }
+
+    public Optional<Role> findRoleById(String id) {
+        return CLIENT_AUTH_META.findRole(id);
+    }
+
 }

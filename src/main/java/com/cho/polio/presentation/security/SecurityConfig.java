@@ -1,8 +1,10 @@
 package com.cho.polio.presentation.security;
 
-import com.cho.polio.presentation.security.dto.PermissionRule;
-import com.cho.polio.presentation.security.dto.Resource;
-import com.cho.polio.presentation.security.dto.RoleRule;
+import com.cho.polio.application.keycloak.service.KeycloakPermissionService;
+import com.cho.polio.infrastructure.keycloak.prop.KeycloakSecurityProperties;
+import com.cho.polio.infrastructure.keycloak.dto.PermissionRule;
+import com.cho.polio.infrastructure.keycloak.dto.Resource;
+import com.cho.polio.application.keycloak.dto.RoleRule;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,53 +28,52 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final KeycloakAdminClient keycloakAdminClient;
+    private final KeycloakPermissionService keycloakPermissionService;
     private final KeycloakSecurityProperties keycloakSecurityProperties;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-        List<PermissionRule> permissionRules = keycloakAdminClient.getPermissionRules();
-
         http
                 .csrf(csrf -> csrf.disable()) // REST API인 경우 비활성화 권장
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(authz -> {
-
-                    authorizeByPermissionRules(authz, keycloakAdminClient.getPermissionRules());
+                    authorizeByPermissionRules(authz, keycloakPermissionService.getPermissionRules());
                     authz.anyRequest().authenticated();
                 })
 
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt->jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-                        })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
-                        })
-                );
+                .exceptionHandling(this::configureExceptionHandling);
 
         return http.build();
     }
 
+    private void configureExceptionHandling(ExceptionHandlingConfigurer<HttpSecurity> ex) {
+        ex.authenticationEntryPoint((request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+        }).accessDeniedHandler((request, response, accessDeniedException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
+        });
+    }
+
+
     // Uri에 검사기 주입
     private void authorizeByPermissionRules(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry authz, List<PermissionRule> permissionRules) {
-        keycloakAdminClient.getPermissionRules()
-            .forEach(permissionRule -> {
-                permissionRule.findResource().ifPresent(resource -> {
-                    resource.getUris()
-                            .forEach(uri -> {
-                                authz.requestMatchers(uri)
-                                .access((authentication, context) ->
-                                     evaluateAccess(authentication, permissionRule, context.getRequest().getMethod())
-                                );
-                    });
+        keycloakPermissionService.getPermissionRules().stream()
+                .flatMap(permissionRule -> permissionRule.findResource().stream().flatMap(resource -> resource.getUris().stream()
+                        .map(uri -> new AbstractMap.SimpleEntry<>(uri, permissionRule))))
+                .forEach(entry -> {
+                    String uri = entry.getKey();
+                    PermissionRule permissionRule = entry.getValue();
+
+                    authz.requestMatchers(uri)
+                            .access((authentication, context) ->
+                                    evaluateAccess(authentication, permissionRule, context.getRequest().getMethod())
+                            );
                 });
-            });
     }
 
     // 권한 검사기
@@ -93,11 +95,11 @@ public class SecurityConfig {
                 .map(auth -> auth.substring("SCOPE_".length()))
                 .collect(Collectors.toSet());
 
-        boolean isValidScope = isValidScope( permissionRule, userScopes, httpMethod);
+        boolean isValidScope = isValidScope(permissionRule, userScopes, httpMethod);
 
 
         // 최종 결정: 역할이 있고, 스코프가 맞으며 메서드도 허용돼야 함
-        boolean allowed = hasRequiredRole && isValidScope ;
+        boolean allowed = hasRequiredRole && isValidScope;
 
         return new AuthorizationDecision(allowed);
     }
@@ -139,25 +141,22 @@ public class SecurityConfig {
     }
 
     private Set<String> getAllowedMethodsByScopes(List<String> scopes) {
-        Set<String> allowedMethods = new HashSet<>();
-        for (String scope : scopes) {
-            String mappedScope = mapHttpMethodToScope(scope);
-            if (mappedScope == null) continue;
-
-            switch (mappedScope) {
-                case "read" -> allowedMethods.add("GET");
-                case "write" -> {
-                    allowedMethods.add("POST");
-                    allowedMethods.add("PUT");
-                    allowedMethods.add("PATCH");
-                }
-                case "edit" -> allowedMethods.add("PATCH"); // 선택적 추가
-                case "remove" -> allowedMethods.add("DELETE");
-            }
-        }
-        return allowedMethods;
+        return scopes.stream()
+                .map(this::mapHttpMethodToScope)
+                .filter(Objects::nonNull)
+                .flatMap(scope -> allowedMethodsForScope(scope).stream())
+                .collect(Collectors.toSet());
     }
 
+    private Set<String> allowedMethodsForScope(String mappedScope) {
+        return switch (mappedScope) {
+            case "read" -> Set.of("GET");
+            case "write" -> Set.of("POST", "PUT", "PATCH");
+            case "edit" -> Set.of("PATCH"); // 선택적 추가
+            case "remove" -> Set.of("DELETE");
+            default -> Set.of();
+        };
+    }
 
 
     private String mapHttpMethodToScope(String scope) {
@@ -179,8 +178,6 @@ public class SecurityConfig {
         }
         return false;
     }
-
-
 
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
@@ -210,10 +207,8 @@ public class SecurityConfig {
 
         });
 
-
         return converter;
     }
-
 
 
 }

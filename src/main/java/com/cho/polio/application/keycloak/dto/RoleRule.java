@@ -1,5 +1,6 @@
-package com.cho.polio.presentation.security.dto;
+package com.cho.polio.application.keycloak.dto;
 
+import com.cho.polio.infrastructure.keycloak.dto.RoleConfig;
 import lombok.Data;
 
 @Data

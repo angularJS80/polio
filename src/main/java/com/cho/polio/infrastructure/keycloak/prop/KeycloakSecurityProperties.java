@@ -1,4 +1,4 @@
-package com.cho.polio.presentation.security;
+package com.cho.polio.infrastructure.keycloak.prop;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

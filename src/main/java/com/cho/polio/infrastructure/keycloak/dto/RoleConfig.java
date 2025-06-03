@@ -1,4 +1,4 @@
-package com.cho.polio.presentation.security.dto;
+package com.cho.polio.infrastructure.keycloak.dto;
 
 import lombok.Data;
 

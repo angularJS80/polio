@@ -1,4 +1,4 @@
-package com.cho.polio.presentation.security.dto;
+package com.cho.polio.infrastructure.keycloak.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Resource extends _IdentityInfo{
+public class Resource extends _IdentityInfo {
 
     private List<String> uris;
     private List<Scope> scopes;
