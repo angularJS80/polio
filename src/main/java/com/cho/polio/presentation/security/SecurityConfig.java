@@ -19,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Configuration
 @RequiredArgsConstructor
@@ -77,43 +78,106 @@ public class SecurityConfig {
     private AuthorizationDecision evaluateAccess(Supplier<Authentication> authentication, PermissionRule permissionRule, String httpMethod) {
         List<RoleRule> roleRules = permissionRule.getRoleRules();
 
-        List<String> requiredScopes = permissionRule.findResource()
-                .map(Resource::getScopes)
-                .orElse(List.of())
-                .stream()
-                .map(scope -> "SCOPE_" + scope.getName())
-                .toList();
-
-
         // 현재 사용자의 권한 목록
         List<String> authorities = authentication.get().getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-
         // Role 검사
         boolean hasRequiredRole = roleRules.stream()
                 .anyMatch(roleRule -> authorities.contains("ROLE_" + roleRule.getName()));
 
-        // Scope가 설정된 경우에만 추가 검사
-        String requiredScopeName = mapHttpMethodToScope(httpMethod);
-        boolean hasRequiredScope = requiredScopeName == null || authorities.contains("SCOPE_" + requiredScopeName);
+        // 사용자가 가진 스코프 목록
+        Set<String> userScopes = authorities.stream()
+                .filter(auth -> auth.startsWith("SCOPE_"))
+                .map(auth -> auth.substring("SCOPE_".length()))
+                .collect(Collectors.toSet());
 
-        // 판단: 롤은 항상 필요, 스코프는 해당 메서드에 매핑된 게 있다면 체크
-        boolean allowed = hasRequiredRole && hasRequiredScope;
+        boolean isValidScope = isValidScope( permissionRule, userScopes, httpMethod);
+
+
+        // 최종 결정: 역할이 있고, 스코프가 맞으며 메서드도 허용돼야 함
+        boolean allowed = hasRequiredRole && isValidScope ;
 
         return new AuthorizationDecision(allowed);
-
     }
 
-    private String mapHttpMethodToScope(String method) {
-        return switch (method) {
-            case "GET" -> "read";
-            case "POST" -> "write";
-            case "PUT" -> "edit";
-            case "DELETE" -> "remove";
-            default -> null; // 기타 메서드는 스코프 체크 없음
-        };
+    private boolean isValidScope(PermissionRule permissionRule, Set<String> userScopes, String httpMethod) {
+        // 리소스에 정의된 필수 스코프 목록 생성
+        List<String> requiredScopes = makeRequiredScopes(permissionRule);
+
+        // 1) 리소스에 할당된 스코프들이 허용하는 HTTP 메서드 집합 구함
+        //    요청한 httpMethod가 허용 메서드에 포함되면, 즉시 true 반환 (사용자 Scope 검사 없이 허용)
+        if (getAllowedMethodsByScopes(requiredScopes).contains(httpMethod.toUpperCase())) {
+            return true;
+        }
+
+        // 2) 사용자 토큰에 포함된 Scope를 정규화 (예: "user.read" -> "read")
+        Set<String> normalizedUserScopes = userScopes.stream()
+                .map(this::mapHttpMethodToScope)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // 3) 사용자 스코프와 리소스 스코프 간 교집합 여부 확인
+        //    교집합이 존재하면 true 반환 (메서드 구분 없이 권한 허용)
+        if (requiredScopes.stream()
+                .anyMatch(normalizedUserScopes::contains)) {
+            return true;
+        }
+
+        // 4) 위 조건들에 모두 해당하지 않으면 권한 거부 (false 반환)
+        return false;
+    }
+
+    private List<String> makeRequiredScopes(PermissionRule permissionRule) {
+        return permissionRule.findResource()
+                .map(Resource::getScopes)
+                .orElse(List.of())
+                .stream()
+                .map(scope -> scope.getName()) // 예: "read", "write"
+                .toList();
+    }
+
+    private Set<String> getAllowedMethodsByScopes(List<String> scopes) {
+        Set<String> allowedMethods = new HashSet<>();
+        for (String scope : scopes) {
+            String mappedScope = mapHttpMethodToScope(scope);
+            if (mappedScope == null) continue;
+
+            switch (mappedScope) {
+                case "read" -> allowedMethods.add("GET");
+                case "write" -> {
+                    allowedMethods.add("POST");
+                    allowedMethods.add("PUT");
+                    allowedMethods.add("PATCH");
+                }
+                case "edit" -> allowedMethods.add("PATCH"); // 선택적 추가
+                case "remove" -> allowedMethods.add("DELETE");
+            }
+        }
+        return allowedMethods;
+    }
+
+
+
+    private String mapHttpMethodToScope(String scope) {
+        if (scope == null) return null;
+
+        String lower = scope.toLowerCase();
+
+        if (containsAny(lower, "read", "view", "list", "get", "fetch", "query", "search")) return "read";
+        if (containsAny(lower, "write", "create", "add", "post", "register", "insert")) return "write";
+        if (containsAny(lower, "edit", "modify", "update", "change", "patch")) return "edit";
+        if (containsAny(lower, "remove", "delete", "destroy", "erase", "drop")) return "remove";
+
+        return null;
+    }
+
+    private boolean containsAny(String source, String... keywords) {
+        for (String keyword : keywords) {
+            if (source.contains(keyword)) return true;
+        }
+        return false;
     }
 
 
@@ -137,8 +201,16 @@ public class SecurityConfig {
                 clientRoles.forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role)));
             }
 
+            // 3. scope → SCOPE_ 권한 추가 (필요시)
+            List<String> scopes = Optional.ofNullable(jwt.getClaimAsStringList("scope"))
+                    .orElse(Collections.emptyList());
+            scopes.forEach(scope -> authorities.add(new SimpleGrantedAuthority("SCOPE_" + scope)));
+
             return authorities;
+
         });
+
+
         return converter;
     }
 
