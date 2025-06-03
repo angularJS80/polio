@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class KeycloakPermissionService {
     private final KeycloakAdminClient keycloakAdminClient;
+    private final ResourceAssociationService resourceAssociationService;
+    private final RoleAssociationService roleAssociationService;
 
     public List<PermissionRule> getPermissionRules() {
         return keycloakAdminClient.getPermissions()
@@ -28,40 +30,15 @@ public class KeycloakPermissionService {
     }
 
     private PermissionRule buildPermissionRuleWithAssociations(PermissionRule permissionRule) {
-        associateResource(permissionRule);
-        associateRole(permissionRule);
+        resourceAssociationService.associateResource(permissionRule);
+        roleAssociationService.associateRole(permissionRule);
         return permissionRule;
     }
 
 
-    private PermissionRule associateResource(PermissionRule permissionRule) {
-        keycloakAdminClient.retrieveResourceIdentityPermission(permissionRule.getPermissionId())
-                .stream()
-                .map(_IdentityInfo::get_id)
-                .map(keycloakAdminClient::findResourceById)
-                .flatMap(Optional::stream)
-                .findFirst()
-                .ifPresent(permissionRule::setResource);
 
-        return permissionRule;
-    }
 
-    private PermissionRule associateRole(PermissionRule permissionRule) {
-        keycloakAdminClient.retrievePolicyPermissionId(permissionRule.getPermissionId()).forEach(policy -> {
-            permissionRule.setPolicy(policy);
 
-            keycloakAdminClient.findPolicyWithRoleByPolicyId(policy.getId())
-                    .flatMap(PolicyWithRole::findRoles)
-                    .stream()
-                    .flatMap(Collection::stream)
-                    .map(roleConfig -> keycloakAdminClient.findRoleById(roleConfig.getId())
-                            .map(role -> RoleRule.of(roleConfig, role.getName())))
-                    .flatMap(Optional::stream)
-                    .forEach(permissionRule::addRoleRule);
-        });
-
-        return permissionRule;
-    }
 
 
 
