@@ -13,12 +13,7 @@ class PolioApplicationTests {
 
     @Test
     void contextLoads() {
-
-
-
-
         //List<IdentityInfo> scopeIdentiyList = keycloakAdminClient.retrieveScopeIdentityResourceId(resourceIdentityInfo.get_id());
-
     }
 
 }
