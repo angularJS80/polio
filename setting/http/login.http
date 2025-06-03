@@ -7,3 +7,6 @@ client_id=polio-toy-client&
 client_secret=I6uiQiYIegQVvvIsAgFUpexpgNjfR86H&
 username=polio-toy-client-user1&
 password=polio-toy-client-user1
+
+
+> {% client.global.set("user_access_token", response.body.access_token) %}
