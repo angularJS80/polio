@@ -67,15 +67,17 @@ Authorization: Bearer {{client_access_token}}
 
 
 
-
 ###
 #Policy List(Client Base)
 GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/policy
 Authorization: Bearer {{client_access_token}}
 
 ###
+
+
+
 #Policy (associatedPolicies)
-GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/policy/9b15407a-3ee7-4c2c-a965-9b90de172dfa/associatedPolicies
+GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/authz/resource-server/policy/680b75cf-76b9-4633-8beb-11275d91dc4e/associatedPolicies
 Authorization: Bearer {{client_access_token}}
 
 ###
@@ -86,4 +88,11 @@ Authorization: Bearer {{client_access_token}}
 ###
 GET http://localhost:8089/admin/realms/polio/clients/3dd254b1-504c-4b8b-b93c-563fdccfc979/roles
 Authorization: Bearer {{client_access_token}}
+
+
+###
+GET http://localhost:8089/admin/realms/polio/groups
+Authorization: Bearer {{client_access_token}}
+
+
 
