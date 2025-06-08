@@ -1,0 +1,9 @@
+### UMA Ticket 요청 (RPT 발급)
+POST http://localhost:8089/realms/polio/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Bearer {{user_access_token}}
+
+grant_type=urn:ietf:params:oauth:grant-type:uma-ticket&
+audience=polio-toy-client&
+permission=18a98296-acd6-4eeb-b366-935e8892084f#sample-api.read
+#18a98296-acd6-4eeb-b366-935e8892084f#
