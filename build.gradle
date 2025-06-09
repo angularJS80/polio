@@ -18,21 +18,25 @@ configurations {
         extendsFrom annotationProcessor
     }
 }
-
+/*
 repositories {
     mavenCentral()
-}
+}*/
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
-
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     runtimeOnly 'com.mysql:mysql-connector-j'
+
+    //Security layer
+    implementation 'com.github.angularJS80:polio-keycloak:dde74d641c'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
 }
 

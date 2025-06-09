@@ -1,5 +1,4 @@
 spring:
-
   application:
     name: polio
   datasource:
@@ -13,3 +12,23 @@ spring:
       idle-timeout: 600000       # 10분
       connection-timeout: 30000  # 30초
       max-lifetime: 1800000      # 30분
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8089/realms/polio
+      client:
+        registration:
+          keycloak:
+            client-id: polio-toy-client
+            client-secret: I6uiQiYIegQVvvIsAgFUpexpgNjfR86H
+            scope: openid
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+keycloak:
+  client-id: polio-toy-client
+  client-secret: I6uiQiYIegQVvvIsAgFUpexpgNjfR86H
+  realm: polio
+  username: polio-admin
+  password: polio-admin
+  server-url: http://localhost:8089
