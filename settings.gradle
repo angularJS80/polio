@@ -1,9 +1,1 @@
 rootProject.name = 'polio'
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-        // security layer
-        maven { url 'https://jitpack.io' }
-    }
-}
