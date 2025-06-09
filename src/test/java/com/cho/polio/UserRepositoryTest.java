@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,8 +27,10 @@ class UserRepositoryTest {
     @Test
     void 사용자_저장_및_조회() {
         User saved = userRepository.save(new User("cho"));
+        List<User> dsluser = userRepository.findByName("cho");
 
         Optional<User> found = userRepository.findById(saved.getId());
+
 
         assertThat(found).isPresent();
         assertThat(found.get().getName()).isEqualTo("cho");
