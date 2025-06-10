@@ -1,6 +1,7 @@
 package com.cho.polio.presentation.security.config;
 
 import com.cho.polio.presentation.security.authroization.PermissionRuleUriMapper;
+import com.cho.polio.presentation.security.converter.KeycloakJwtAuthenticationConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final PermissionRuleUriMapper permissionRuleUriMapper;
+    private final KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
 
     @Bean
     @Order(0)
@@ -37,7 +39,7 @@ public class SecurityConfig {
                     permissionRuleUriMapper.configureAuthorization(authz);
                     authz.anyRequest().authenticated();
                 })
-                //.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter)))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter)))
                 .exceptionHandling(this::configureExceptionHandling);
 
         return http.build();
