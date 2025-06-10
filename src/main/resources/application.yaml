@@ -12,6 +12,9 @@ spring:
       idle-timeout: 600000       # 10분
       connection-timeout: 30000  # 30초
       max-lifetime: 1800000      # 30분
+  jpa:
+    hibernate:
+      ddl-auto: update
   security:
     oauth2:
       resourceserver:
