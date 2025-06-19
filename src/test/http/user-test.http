@@ -1,1 +1,9 @@
-GET http://localhost:8080/user/async-regist-test
+GET http://localhost:8080/user/regist?mode = single-service
+###
+GET http://localhost:8080/user/regist?mode = double-service
+###
+GET http://localhost:8080/user/create-user-name
+
+
+###
+GET http://localhost:8080/user/find?name=b179b145-ecb1-4ad9-a858-67afedce4bcd

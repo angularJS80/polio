@@ -1,7 +1,9 @@
 package com.cho.polio.presentation.user;
 
+import com.cho.polio.application.service.UserReadService;
 import com.cho.polio.application.service.UserService;
 import com.cho.polio.domain.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,17 +14,20 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final UserReadService userReadService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
-    @GetMapping("/async-test") // 이름만 async-test일 뿐 동기로 동작
-    public ResponseEntity<?> getUser(@RequestParam String name) {
-        Optional<User> userOptional = userService.findUserByNmae(name);
+    @GetMapping("/find") // 이름만 async-test일 뿐 동기로 동작
+    public ResponseEntity<?> getDefaultServiceUser(  @RequestParam String name, @RequestParam String mode) {
+        Optional<User> userOptional = Optional.empty();
+        if(mode.equals("single-service")){
+             userOptional = userService.watingAndFindUserByNmae(name);
+        }else{
+            userOptional = userReadService.watingAndFindUserByNmae(name);
+        }
 
         if (userOptional.isPresent()) {
             return ResponseEntity.ok(userOptional.get());
@@ -31,15 +36,17 @@ public class UserController {
         }
     }
 
-    @GetMapping("/async-regist-test") // 이름만 async-test일 뿐 동기로 동작
-    public ResponseEntity<?> saveUser() {
-         userService.regist();
+    @GetMapping("/regist") // 이름만 async-test일 뿐 동기로 동작
+    public ResponseEntity<?> saveUser(@RequestParam String mode) {
+         userService.regist(mode);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/create-user-name") // 이름만 async-test일 뿐 동기로 동작
-    public ResponseEntity<String> crateUserName() {
 
-        return ResponseEntity.ok(userService.createUserName());
+    @GetMapping("/create-user-name") // 이름만 async-test일 뿐 동기로 동작
+    public ResponseEntity<String> crateUserNam(@RequestParam String mode) {
+
+        return ResponseEntity.ok(userReadService.createUserName(mode));
     }
+
 }
