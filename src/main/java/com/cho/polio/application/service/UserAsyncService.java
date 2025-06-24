@@ -30,4 +30,20 @@ public class UserAsyncService {
 
     }
 
+
+    @Async
+    public void asyncRequestChangeUserName(String genName){
+
+        RestTemplate restTemplate = new RestTemplate();
+        String findUrl = "http://localhost:8080/user/change?nextName="+genName;
+        System.out.println(findUrl);
+        // 결과 무시
+        try {
+            restTemplate.getForEntity(findUrl, Void.class);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+    }
+
 }

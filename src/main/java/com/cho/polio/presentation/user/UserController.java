@@ -42,11 +42,23 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/change") // 이름만 async-test일 뿐 동기로 동작
+    public ResponseEntity<?> changeUser(@RequestParam String nextName) {
+        userService.change(nextName);
+        return ResponseEntity.ok().build();
+    }
+
 
     @GetMapping("/create-user-name") // 이름만 async-test일 뿐 동기로 동작
-    public ResponseEntity<String> crateUserNam(@RequestParam String mode) {
+    public ResponseEntity<String> crateUserName(@RequestParam String mode) {
 
         return ResponseEntity.ok(userReadService.createUserName(mode));
+    }
+
+    @GetMapping("/change-user-name") // 이름만 async-test일 뿐 동기로 동작
+    public ResponseEntity<String> changeUserName() {
+
+        return ResponseEntity.ok(userReadService.changeUserName());
     }
 
 }

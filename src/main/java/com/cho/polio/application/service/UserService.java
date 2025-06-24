@@ -5,11 +5,13 @@ import com.cho.polio.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -80,5 +82,74 @@ public class UserService {
     }
 
 
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Async
+    public void change(String nextName) {
+
+        // max wait: 5초
+        long maxWaitMillis = 50000;
+        long start = System.currentTimeMillis();
+
+        while (userCash.getNextNameInProgress().contains(nextName)) {
+            if (System.currentTimeMillis() - start > maxWaitMillis) {
+                //throw new RuntimeException("Timeout waiting for name: " + name);
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Interrupted", e);
+            }
+        }
+
+        userRepository.findByNextName(nextName)
+                .ifPresent(user -> {
+
+                    user.updateNameFromNextName();
+                    userRepository.save(user);
+                });
+
+    }
+
+    public void save(User user) {
+        userRepository.save(user);
+    }
+
+
+    @Async
+    public void changeNextName(User user){
+        String nextName = requestUserName();
+        user.updateNextName(requestUserName());
+        save(user);
+
+        // 트랜잭션 커밋 후 실행
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted", e);
+                }
+                userCash.getNameInProgress().remove(nextName);
+                System.out.println("name removed after commit");
+            }
+        });
+
+    }
+
+
+    public String requestUserName(){
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8080/user/change-user-name";
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        String nextName = response.getBody();
+        userCash.getNextNameInProgress().add(nextName);
+        return nextName;
+    }
 
 }

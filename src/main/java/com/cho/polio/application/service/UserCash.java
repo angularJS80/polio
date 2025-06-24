@@ -11,7 +11,15 @@ public class UserCash {
     // 이름 점유 캐시 (동시성 고려 필요)
     private final Set<String> nameInProgress = ConcurrentHashMap.newKeySet();
 
+    private final Set<String> nextNameInProgress = ConcurrentHashMap.newKeySet();
+
+
     public Set<String> getNameInProgress() {
         return nameInProgress;
     }
+
+    public Set<String> getNextNameInProgress() {
+        return nextNameInProgress;
+    }
+
 }

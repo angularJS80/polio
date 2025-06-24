@@ -9,6 +9,7 @@ public class User extends RootEntity {
 
 
     private String name;
+    private String nextName;
 
     protected User() {} // JPA용 기본 생성자
 
@@ -21,4 +22,11 @@ public class User extends RootEntity {
         return name;
     }
 
+    public void updateNextName(String nextName){
+        this.nextName = nextName;
+    }
+
+    public void updateNameFromNextName() {
+        this.name = this.nextName;
+    }
 }

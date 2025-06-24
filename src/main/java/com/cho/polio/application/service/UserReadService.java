@@ -60,5 +60,11 @@ public class UserReadService {
         return genName;
     }
 
+    public String changeUserName() {
+        String genName = UUID.randomUUID().toString();
+        userAsyncService.asyncRequestChangeUserName(genName);
+        return genName;
+    }
+
 
 }
