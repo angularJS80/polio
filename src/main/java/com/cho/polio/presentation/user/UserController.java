@@ -2,6 +2,7 @@ package com.cho.polio.presentation.user;
 
 import com.cho.polio.application.service.UserReadService;
 import com.cho.polio.application.service.UserService;
+import com.cho.polio.application.service.UserServiceWithOutTransaction;
 import com.cho.polio.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ public class UserController {
 
     private final UserService userService;
     private final UserReadService userReadService;
+    private final UserServiceWithOutTransaction userServiceWithOutTransaction;
 
     @GetMapping("/find") // 이름만 async-test일 뿐 동기로 동작
     public ResponseEntity<?> getDefaultServiceUser(  @RequestParam String name, @RequestParam String mode) {
@@ -44,7 +46,8 @@ public class UserController {
 
     @GetMapping("/change") // 이름만 async-test일 뿐 동기로 동작
     public ResponseEntity<?> changeUser(@RequestParam String nextName) {
-        userService.change(nextName);
+        //userServiceWithOutTransaction.change(nextName);
+        userService.watingAndChange(nextName);
         return ResponseEntity.ok().build();
     }
 

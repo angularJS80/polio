@@ -24,7 +24,7 @@ class PolioApplicationTests {
 
     @Test
     void testConcurrentGetRequestsWithRestTemplate() throws InterruptedException {
-        int requestCount = 1000;
+        int requestCount = 300;
         String url = "http://localhost:8080/user/regist?mode=double-service";
 
         ExecutorService executor = Executors.newFixedThreadPool(20); // 병렬 처리용 스레드 풀

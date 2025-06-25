@@ -2,11 +2,12 @@ package com.cho.polio.application.service;
 
 import com.cho.polio.domain.User;
 import com.cho.polio.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestTemplate;
@@ -19,7 +20,6 @@ import java.util.Optional;
 @Transactional
 public class UserService {
 
-    private final UserAsyncService userAsyncService;
     private final UserRepository userRepository;
     private final UserCash userCash;
 
@@ -82,47 +82,18 @@ public class UserService {
     }
 
 
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    @Async
-    public void change(String nextName) {
-
-        // max wait: 5초
-        long maxWaitMillis = 50000;
-        long start = System.currentTimeMillis();
-
-        while (userCash.getNextNameInProgress().contains(nextName)) {
-            if (System.currentTimeMillis() - start > maxWaitMillis) {
-                //throw new RuntimeException("Timeout waiting for name: " + name);
-            }
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Interrupted", e);
-            }
-        }
-
-        userRepository.findByNextName(nextName)
-                .ifPresent(user -> {
-
-                    user.updateNameFromNextName();
-                    userRepository.save(user);
-                });
-
-    }
-
     public void save(User user) {
         userRepository.save(user);
     }
 
 
-    @Async
+    @Async("transaction")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void changeNextName(User user){
         String nextName = requestUserName();
-        user.updateNextName(requestUserName());
+        // IN 상태로 등록
+        userCash.getNextNameInProgress().put(nextName, "IN");
+        user.updateNextName(nextName);
         save(user);
 
         // 트랜잭션 커밋 후 실행
@@ -135,11 +106,22 @@ public class UserService {
                     Thread.currentThread().interrupt();
                     throw new RuntimeException("Interrupted", e);
                 }
-                userCash.getNameInProgress().remove(nextName);
-                System.out.println("name removed after commit");
+                userCash.getNextNameInProgress().put(nextName, "OUT");
+
+                System.out.println("🟢 AFTER COMMIT COMPLETED"); // ← 여기에 디버그 찍으면 DB 반영됨
             }
         });
 
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void findAndUpdate(String nextName) {
+        userRepository.findByNextName(nextName)
+                .ifPresent(user -> {
+
+                    user.updateNameFromNextName();
+                    userRepository.save(user);
+                });
     }
 
 
@@ -148,8 +130,59 @@ public class UserService {
         String url = "http://localhost:8080/user/change-user-name";
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         String nextName = response.getBody();
-        userCash.getNextNameInProgress().add(nextName);
+
         return nextName;
     }
 
+
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    public void waitForReadyData(String nextName) {
+        // max wait: 5초
+        long maxWaitMillis = 10000;
+        long start = System.currentTimeMillis();
+
+        if(!userCash.getNextNameInProgress().containsKey(nextName)){
+
+            while (!userCash.getNextNameInProgress().containsKey(nextName)) {
+                if (System.currentTimeMillis() - start > maxWaitMillis) {
+                    throw new RuntimeException("Timeout waiting for someone to begin: " + nextName);
+                }
+                try {
+                    System.out.println("Waiting!!!!!!!"); // ← 여기에 디버그 찍으면 DB 반영됨
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted", e);
+                }
+            }
+        }
+
+        if(userCash.getNextNameInProgress().containsKey(nextName)){
+            while ("IN".equals(userCash.getNextNameInProgress().get(nextName))) {
+
+                try {
+                    System.out.println("Waiting!!!!!!!"); // ← 여기에 디버그 찍으면 DB 반영됨
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted", e);
+                }
+            }
+        }
+
+    }
+
+    @Async("httpReceive")
+    public void watingAndChange(String nextName){
+        waitForReadyData(nextName);
+        change(nextName);
+    }
+
+    public void change(String nextName) {
+        findAndUpdate(nextName);
+        userCash.getNameInProgress().remove(nextName);
+    }
 }

@@ -2,14 +2,10 @@ package com.cho.polio.application.service;
 
 import com.cho.polio.domain.User;
 import com.cho.polio.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,7 +16,11 @@ public class UserReadService {
     private final UserAsyncService userAsyncService;
     private final UserRepository userRepository;
     private final UserCash userCash;
+    private final UserService userService;
 
+    public List<User> findAll(){
+        return userService.findAll();
+    }
 
     public Optional<User> watingAndFindUserByNmae(String name) {
         // max wait: 5초
@@ -60,11 +60,14 @@ public class UserReadService {
         return genName;
     }
 
+
     public String changeUserName() {
         String genName = UUID.randomUUID().toString();
         userAsyncService.asyncRequestChangeUserName(genName);
         return genName;
     }
+
+
 
 
 }

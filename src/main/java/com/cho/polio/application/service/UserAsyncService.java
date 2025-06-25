@@ -2,6 +2,7 @@ package com.cho.polio.application.service;
 
 import com.cho.polio.domain.User;
 import com.cho.polio.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -13,12 +14,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class UserAsyncService {
 
-    @Async
+    private final RestTemplate restTemplate;
+
+    @Async("httpSend")
     public void asyncCall(String genName,String mode){
 
-        RestTemplate restTemplate = new RestTemplate();
         String findUrl = "http://localhost:8080/user/find?name="+genName+"&mode="+mode;
         System.out.println(findUrl);
         // 결과 무시
@@ -31,10 +34,10 @@ public class UserAsyncService {
     }
 
 
-    @Async
+    @Async("httpSend")
     public void asyncRequestChangeUserName(String genName){
 
-        RestTemplate restTemplate = new RestTemplate();
+       
         String findUrl = "http://localhost:8080/user/change?nextName="+genName;
         System.out.println(findUrl);
         // 결과 무시
