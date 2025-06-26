@@ -2,6 +2,7 @@ package com.cho.polio.application.service;
 
 import com.cho.polio.domain.User;
 import com.cho.polio.repository.UserRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserCash userCash;
+
 
     public void regist(String mode){
         //Break Point (첫번째 트랜잭션 시작상태를 감지 )
@@ -176,10 +179,23 @@ public class UserService {
     }
 
     @Async("httpReceive")
-    public void watingAndChange(String nextName){
+    @CircuitBreaker(name = "backendService", fallbackMethod = "fallback")
+    public CompletableFuture<Void> waitingAndChange(String nextName) {
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         waitForReadyData(nextName);
         change(nextName);
+        return CompletableFuture.completedFuture(null);
     }
+
+    public CompletableFuture<Void> fallback(String nextName, Throwable t) {
+        System.out.println("Heavily Traffic !!!!!!!"); // ← 여기에 써킷브레이커 동작확인
+        return CompletableFuture.completedFuture(null);
+    }
+
 
     public void change(String nextName) {
         findAndUpdate(nextName);

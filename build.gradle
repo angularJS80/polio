@@ -31,6 +31,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.0.2' // 버전은 최신 확인 필수
+
 }
 
 tasks.named('test') {

@@ -47,7 +47,7 @@ public class UserController {
     @GetMapping("/change") // 이름만 async-test일 뿐 동기로 동작
     public ResponseEntity<?> changeUser(@RequestParam String nextName) {
         //userServiceWithOutTransaction.change(nextName);
-        userService.watingAndChange(nextName);
+        userService.waitingAndChange(nextName).join();
         return ResponseEntity.ok().build();
     }
 

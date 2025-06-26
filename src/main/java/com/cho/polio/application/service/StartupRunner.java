@@ -14,7 +14,7 @@ public class StartupRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         // 애플리케이션 시작 후 실행할 코드
         System.out.println("Application started!");
-        userSchduleComponent.testRegist();
+        //userSchduleComponent.testRegist();
         userSchduleComponent.requestUpdateUserName();
     }
 }

@@ -15,5 +15,19 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+resilience4j:
+  circuitbreaker:
+    instances:
+      backendService:
+        registerHealthIndicator: true
+        slidingWindowSize: 1          # 최근 10번 호출 기준 집계
+        failureRateThreshold: 100       # 실패율 50% 넘으면 circuit open
+        waitDurationInOpenState: 30s   # 10초 동안 open 상태 유지
+        permittedNumberOfCallsInHalfOpenState: 3
+
+        minimumNumberOfCalls: 1
+        slowCallRateThreshold: 100              # 슬로우 콜 비율 100% 이상 시 Open
+        slowCallDurationThreshold: 1s           # 2초 넘는 호출은 슬로우 콜로 간주
+
 
 debug: true
