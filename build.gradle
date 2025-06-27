@@ -34,7 +34,7 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     //Security layer
-    implementation 'com.github.angularJS80:polio-keycloak:9f9eebb8'
+    implementation 'com.github.angularJS80:polio-keycloak:v0.1.1'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
