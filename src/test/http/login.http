@@ -10,3 +10,14 @@ password=polio-toy-client-user1
 
 
 > {% client.global.set("user_access_token", response.body.access_token) %}
+
+
+###
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "username": "polio-toy-client-user1",
+  "password": "polio-toy-client-user1"
+}
+
