@@ -17,9 +17,9 @@ public class AuthController {
     private final KeycloakAuthHelper keycloakAuthHelper;
 
     @PostMapping("/login")
-    public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest userLoginRequest) {
+    public ResponseEntity<UserLoginResponse> signIn(@RequestBody UserLoginRequest userLoginRequest) {
 
-        UserLoginResponse userLoginResponse = keycloakAuthHelper.auth(userLoginRequest);
+        UserLoginResponse userLoginResponse = keycloakAuthHelper.signIn(userLoginRequest);
 
         return ResponseEntity.ok(userLoginResponse);
     }
@@ -27,9 +27,17 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<UserLoginResponse> refresh(@RequestBody RequestRefresh refreshToken) {
 
-        UserLoginResponse userLoginResponse = keycloakAuthHelper.authByRefresh(refreshToken.getRefreshToken());
+        UserLoginResponse userLoginResponse = keycloakAuthHelper.refresh(refreshToken.getRefreshToken());
 
         return ResponseEntity.ok(userLoginResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<UserLoginResponse> signOut(@RequestBody RequestRefresh refreshToken) {
+
+        keycloakAuthHelper.signOut(refreshToken.getRefreshToken());
+
+        return ResponseEntity.ok().build();
     }
 
 }

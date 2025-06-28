@@ -9,7 +9,26 @@ username=polio-toy-client-user1&
 password=polio-toy-client-user1
 
 
-> {% client.global.set("user_access_token", response.body.access_token) %}
+> {%
+    const res = response.body;
+    client.global.set("user_access_token", res.access_token);
+    client.global.set("user_refresh_token", res.refresh_token);
+%}
+
+
+
+### 로그아웃 - refresh_token 사용
+POST http://localhost:8089/realms/polio/protocol/openid-connect/logout
+Content-Type: application/x-www-form-urlencoded
+
+client_id=polio-toy-client&
+client_secret=I6uiQiYIegQVvvIsAgFUpexpgNjfR86H&
+refresh_token={{user_refresh_token}}
+
+> {%
+    client.global.clear("user_access_token");
+    client.global.clear("user_refresh_token");
+%}
 
 
 ###
@@ -20,4 +39,6 @@ Content-Type: application/json
   "username": "polio-toy-client-user1",
   "password": "polio-toy-client-user1"
 }
+
+
 
