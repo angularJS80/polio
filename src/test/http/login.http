@@ -5,8 +5,8 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=password&
 client_id=polio-toy-client&
 client_secret=I6uiQiYIegQVvvIsAgFUpexpgNjfR86H&
-username=polio-toy-client-user1&
-password=polio-toy-client-user1
+username=test&
+password=test
 
 
 > {%
@@ -40,5 +40,22 @@ Content-Type: application/json
   "password": "polio-toy-client-user1"
 }
 
+### 3. 사용자 비밀번호 변경
+# 위에서 얻은 사용자 ID (userId)를 아래 URL에 넣어주세요
+PUT http://localhost:8089/admin/realms/polio/users/5647cdfb-e870-4e7c-803b-47a581381558/reset-password
+Content-Type: application/json
+Authorization: Bearer {{client_access_token}}
+
+{
+  "type": "password",
+  "value": "NEW_PASSWORD_HERE",
+  "temporary": false
+}
 
 
+###
+PUT http://localhost:8080/auth/password
+Content-Type: application/json
+Authorization: Bearer {{user_access_token}}
+
+{"userId":"9d833fc5-cc1e-4b60-8f5e-27fdb3c3db70","newPassword":"test1234"}
