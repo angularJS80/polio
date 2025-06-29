@@ -47,6 +47,28 @@ polio
 
 ## 📜 예제 설정
 
+
+
+
+```keycloak docker
+
+docker run -d \
+-p 8089:8080 \
+--name keycloak \
+-e KEYCLOAK_ADMIN_PASSWORD=keycloakadmin \
+-e KC_DB=mysql \
+-e KC_DB_URL_HOST=host.docker.internal \
+-e KC_DB_URL_PORT=3306 \
+-e KC_DB_URL_DATABASE=keycloak \
+-e KC_DB_USERNAME=keycloak \
+-e KC_DB_PASSWORD=keycloak \
+-e KEYCLOAK_ADMIN=keycloakadmin \
+-e KC_RUN_IN_CONTAINER=true \
+-e JAVA_OPTS_APPEND="-Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled" \
+quay.io/keycloak/keycloak:24.0.3 start-dev
+```
+
+
 ```yaml
 spring:
   security:
@@ -60,6 +82,25 @@ keycloak:
   realm: myrealm
   client-id: myclient
   client-secret: ${KEYCLOAK_CLIENT_SECRET}
+```
+  
+``` 비밀번호 리셋에 필요한 별도 클라이언트 설정
+Keycloak token-exchange 권한 설정 요약
+polio-toy-client-action 클라이언트 추가
+
+Docker 실행 시 -Dkeycloak.profile.feature.token_exchange=enabled 옵션 추가
+
+polio-toy-client-action의 Authorization 기능 활성화
+
+Permissions > token-exchange 진입
+
+Create Policy 클릭 → Policy Type: Client 선택
+
+기존 클라이언트(polio-toy-client) 선택 후 저장
+
+생성한 Policy를 token-exchange Permission에 연결
+```
+
 
 🧪 개발 환경
 Java 17+
