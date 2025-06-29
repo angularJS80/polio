@@ -1,5 +1,6 @@
 package com.cho.polio.presentation.auth;
 
+import com.cho.polio.presentation.auth.dto.RequestPassword;
 import com.cho.polio.presentation.auth.dto.RequestRefresh;
 import com.cho.polio.presentation.enums.ApiPaths;
 import com.polio.poliokeycloak.keycloak.helper.KeycloakAuthHelper;
@@ -9,6 +10,8 @@ import com.polio.poliokeycloak.keycloak.helper.dto.UserLoginResponse;
 import com.polio.poliokeycloak.keycloak.helper.dto.UserRegisterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -50,9 +53,18 @@ public class AuthController {
 
 
     @PutMapping("/password")
-    public ResponseEntity<Void> changePassword(@RequestBody UserChangePasswordRequest userChangePasswordRequest) {
-        keycloakAuthHelper.changeUserPassword(userChangePasswordRequest);
+    public ResponseEntity<Void> changePassword(@RequestBody RequestPassword requestPassword,
+                                               @AuthenticationPrincipal Jwt jwt) {
+        keycloakAuthHelper.changeUserPassword(new UserChangePasswordRequest(jwt.getSubject(), requestPassword.getNewPassword()));
         return ResponseEntity.ok().build();
     }
+
+
+    @GetMapping("/me")
+    public ResponseEntity<Jwt> getMyInfo(@AuthenticationPrincipal Jwt jwt) {
+
+        return ResponseEntity.ok(jwt);
+    }
+
 
 }
