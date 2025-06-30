@@ -49,6 +49,20 @@ polio
 
 
 
+```mail sender
+
+docker run -d --name smtp-relay \
+  -e RELAYHOST='smtp.gmail.com:587' \
+  -e SMTP_USERNAME='1234@gmail.com' \
+  -e SMTP_PASSWORD='123 123 123 123' \
+  -e HOSTNAME='localhost' \
+  -e SENDER_DOMAIN='gmail.com' \
+  -e ALLOW_EMPTY_SENDER_DOMAINS=true \
+  -p 1587:587 \
+  boky/postfix:v4.4.0
+  
+```
+
 
 ```keycloak docker
 

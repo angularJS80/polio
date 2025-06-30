@@ -25,6 +25,15 @@ spring:
             scope: openid
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tutudtutu4@gmail.com         # Gmail 계정
+    password: uidt oryy yoqr ygzf       # 앱 비밀번호 (일반 비밀번호 아님)
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
 keycloak:
   client-id: polio-toy-client
   client-secret: I6uiQiYIegQVvvIsAgFUpexpgNjfR86H
@@ -32,3 +41,4 @@ keycloak:
   username: polio-admin
   password: polio-admin
   server-url: http://localhost:8089
+
