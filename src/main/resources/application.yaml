@@ -41,4 +41,5 @@ keycloak:
   username: polio-admin
   password: polio-admin
   server-url: http://localhost:8089
+  token-refresh-threshold-seconds: 60 # access token 만료까지 남은 시간 기준 (초 단위)
 
