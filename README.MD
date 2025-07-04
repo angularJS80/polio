@@ -49,17 +49,11 @@ polio
 
 
 
-```mail sender
-
-docker run -d --name smtp-relay \
-  -e RELAYHOST='smtp.gmail.com:587' \
-  -e SMTP_USERNAME='1234@gmail.com' \
-  -e SMTP_PASSWORD='123 123 123 123' \
-  -e HOSTNAME='localhost' \
-  -e SENDER_DOMAIN='gmail.com' \
-  -e ALLOW_EMPTY_SENDER_DOMAINS=true \
-  -p 1587:587 \
-  boky/postfix:v4.4.0
+```소셜로그인 
+        // 해당 URL호출시 콜백을 받는 메소드
+        // http://localhost:8089/realms/polio/protocol/openid-connect/auth?client_id=polio-toy-client&redirect_uri=http://localhost:3000/auth/callback&response_type=code&scope=openid%20email%20profile&kc_idp_hint=github
+        // 로그인 성공 처리 (세션 생성, 토큰 저장 등 원하는 처리 가능)
+       
   
 ```
 
