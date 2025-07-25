@@ -1,4 +1,6 @@
 spring:
+  jackson:
+    time-zone: UTC
   application:
     name: polio
   datasource:
