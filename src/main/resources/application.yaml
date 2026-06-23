@@ -36,6 +36,18 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
 keycloak:
   client-id: polio-toy-client
   client-secret: I6uiQiYIegQVvvIsAgFUpexpgNjfR86H
@@ -45,3 +57,14 @@ keycloak:
   server-url: http://localhost:8089
   token-refresh-threshold-seconds: 60 # access token 만료까지 남은 시간 기준 (초 단위)
 
+cloud:
+  aws:
+    s3:
+      endpoint: https://d3v-okd-s3.ikoob.co.kr
+      bucket: proxy-test
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID:proxy-test-api}
+      secret-key: ${AWS_SECRET_ACCESS_KEY:proxy-test-api}
+    region:
+      static: ap-northeast-2
+      auto: false
