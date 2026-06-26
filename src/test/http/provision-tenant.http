@@ -1,0 +1,12 @@
+POST http://localhost:8080/api/v1/tenants/provision
+accept: */*
+Content-Type: application/json
+
+{
+  "tenantId": "polio",
+  "schemaName": "polio",
+  "url": "jdbc:mysql://localhost:3306/polio",
+  "username": "polio",
+  "password": "polio",
+  "referenceTenantId": "polio_master"
+}

@@ -28,6 +28,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<UserLoginResponse> signIn(@RequestBody UserLoginRequest userLoginRequest) {
 
+
         UserLoginResponse userLoginResponse = keycloakAuthHelper.signIn(userLoginRequest);
 
         return ResponseEntity.ok(userLoginResponse);
