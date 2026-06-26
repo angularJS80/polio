@@ -3,17 +3,50 @@ spring:
     time-zone: UTC
   application:
     name: polio
+
+  # ============================================================================
+  # Master DataSource - Tenant 접속 정보를 저장하는 레지스트리 DB
+  # ============================================================================
+
   datasource:
-    url: jdbc:mysql://localhost:3306/polio?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: polio
-    password: polio
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 600000       # 10분
-      connection-timeout: 30000  # 30초
-      max-lifetime: 1800000      # 30분
+    master:
+      hikari:
+        # 🛑 url을 hikari 하위로 이동하고 명칭을 jdbc-url로 변경합니다.
+        jdbc-url: jdbc:mysql://localhost:3306/polio_master?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+        username: polio
+        password: polio
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        maximum-pool-size: 5
+        minimum-idle: 2
+        connection-timeout: 30000
+        ddl-auto: update
+    shared:
+      hikari:
+        # 🛑 url을 hikari 하위로 이동하고 명칭을 jdbc-url로 변경합니다.
+        jdbc-url: jdbc:mysql://localhost:3306/polio_shared?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+        username: polio
+        password: polio
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        maximum-pool-size: 5
+        minimum-idle: 2
+        connection-timeout: 30000
+        ddl-auto: update
+
+  # ============================================================================
+  # JPA 공통 설정
+  # Master DB는 MasterJpaConfig, Tenant DB는 MultiTenantJpaConfig에서 각각 설정
+  # ============================================================================
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        ddl-auto: update
+        dialect: org.hibernate.dialect.MySQLDialect
+        # 👇 이 설정을 true에서 false로 변경하여 메타데이터 자동 조회를 차단합니다.
+        temp:
+          use_jdbc_metadata_defaults: false
+
+
   security:
     oauth2:
       resourceserver:
@@ -40,13 +73,6 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
 
 keycloak:
   client-id: polio-toy-client
@@ -68,3 +94,18 @@ cloud:
     region:
       static: ap-northeast-2
       auto: false
+
+# ============================================================================
+# Multi-tenancy 설정
+# ============================================================================
+multi-tenancy:
+  # 🌟 전역 드라이버 및 연결 옵션 정의
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  connection-options: "?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true"
+  # 테넌트 DB DataSource 기본 설정 (tenant_info에서 개별 재정의 가능)
+  tenant-datasource-defaults:
+    maximum-pool-size: 10
+    minimum-idle: 3
+    idle-timeout: 600000       # 10분
+    connection-timeout: 30000  # 30초
+    max-lifetime: 1800000      # 30분
